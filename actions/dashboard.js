@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/dist/types/server";
+import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
 const serialiseTransaction = (object) => {
@@ -10,11 +10,13 @@ const serialiseTransaction = (object) => {
   if (object.balance) {
     serialised.balance = object.balance.toNumber();
   }
+
+  return serialised;
 };
 
 export async function createAccount(data) {
   try {
-    const userId = await auth();
+    const { userId } = await auth();
 
     if (!userId) {
       throw new Error("Not Authenticated");
@@ -59,6 +61,13 @@ export async function createAccount(data) {
       });
     }
 
+    console.log("Creating account with data:", {
+      ...data,
+      balance: balanceFloat,
+      userId: user.id,
+      isDefault: shouldBeDefault,
+    });
+
     const account = await db.account.create({
       data: {
         ...data,
@@ -71,7 +80,42 @@ export async function createAccount(data) {
     const serialisedAccount = serialiseTransaction(account);
 
     revalidatePath("/dashboard");
-    return {success: true, account: serialisedAccount};
+    return { success: true, account: serialisedAccount };
+  } catch (error) {
+    return { error: error.message };
+  }
+}
 
-  } catch (error) {}
+export async function getAccounts() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Not Authenticated");
+  }
+
+  const user = await db.user.findUnique({
+    where: {
+      clerkUserId: userId,
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const accounts = await db.account.findMany({
+    where: {
+      userId: user.id,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    include: {
+      _count: {
+        select: {
+          transactions: true,
+        },
+      },
+    },
+  });
 }
