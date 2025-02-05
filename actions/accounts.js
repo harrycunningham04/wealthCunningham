@@ -2,6 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 
 const serialiseTransaction = (object) => {
   const serialised = { ...object };
@@ -117,9 +118,7 @@ export async function bulkDeleteTransactions(transactionIds) {
     }
 
     const user = await db.user.findUnique({
-      where: {
-        clerkUserId: userId,
-      },
+      where: { clerkUserId: userId },
     });
 
     if (!user) {
@@ -133,16 +132,43 @@ export async function bulkDeleteTransactions(transactionIds) {
       },
     });
 
+    // Calculate balance changes for affected accounts
     const accountBalanceChanges = transactions.reduce((acc, transaction) => {
+      if (!transaction.accountId) return acc;
+
       const change =
         transaction.type === "EXPENSE"
-          ? transaction.amount
-          : -transaction.amount;
+          ? -transaction.amount // Increase balance when an expense is removed
+          : transaction.amount; // Decrease balance when an income is removed
 
       acc[transaction.accountId] = (acc[transaction.accountId] || 0) + change;
+      return acc;
     }, {});
 
-    
+    await db.$transaction(async (tx) => {
+      // Delete transactions
+      await tx.transaction.deleteMany({
+        where: { id: { in: transactionIds }, userId: user.id },
+      });
 
-  } catch (error) {}
+      // Update affected account balances in parallel
+      await Promise.all(
+        Object.entries(accountBalanceChanges).map(
+          ([accountId, balanceChange]) =>
+            tx.account.update({
+              where: { id: accountId },
+              data: { balance: { increment: balanceChange } },
+            })
+        )
+      );
+    });
+
+    revalidatePath("/account/[id]");
+    revalidatePath("/dashboard");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting transactions:", error);
+    return { success: false, error: error.message };
+  }
 }
