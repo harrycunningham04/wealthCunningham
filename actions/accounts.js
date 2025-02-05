@@ -107,3 +107,42 @@ export async function getAccountWithTransactions(accountId) {
     transactions: account.transactions.map(serialiseTransaction),
   };
 }
+
+export async function bulkDeleteTransactions(transactionIds) {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      throw new Error("Not Authenticated");
+    }
+
+    const user = await db.user.findUnique({
+      where: {
+        clerkUserId: userId,
+      },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const transactions = await db.transaction.findMany({
+      where: {
+        id: { in: transactionIds },
+        userId: userId,
+      },
+    });
+
+    const accountBalanceChanges = transactions.reduce((acc, transaction) => {
+      const change =
+        transaction.type === "EXPENSE"
+          ? transaction.amount
+          : -transaction.amount;
+
+      acc[transaction.accountId] = (acc[transaction.accountId] || 0) + change;
+    }, {});
+
+    
+
+  } catch (error) {}
+}

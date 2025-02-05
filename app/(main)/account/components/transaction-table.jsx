@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Table,
   TableBody,
@@ -20,6 +20,8 @@ import {
   MoreHorizontal,
   RefreshCw,
   Search,
+  Trash,
+  X,
 } from "lucide-react";
 import {
   Tooltip,
@@ -68,7 +70,54 @@ const TransactionTable = ({ transactions }) => {
 
   console.log(selectedIds);
 
-  const filteredAndSortedTransactions = transactions;
+  const filteredAndSortedTransactions = useMemo(() => {
+    let result = [...transactions];
+
+    //Apply Search Filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      result = result.filter((transaction) =>
+        transaction.description?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    //Apply Recurring Filter
+    if (recurringFilter) {
+      result = result.filter((transaction) => {
+        if (recurringFilter === "recurring") return transaction.isRecurring;
+        return !transaction.isRecurring;
+      });
+    }
+
+    //Apply Type Filter
+    if (typeFilter) {
+      result = result.filter((transaction) => transaction.type === typeFilter);
+    }
+
+    //Apply Sort
+    result.sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortConfig.field) {
+        case "date":
+          comparison = new Date(a.date) - new Date(b.date);
+          break;
+        case "category":
+          comparison = a.category.localeCompare(b.category);
+          break;
+        case "amount":
+          comparison = a.amount - b.amount;
+          break;
+        default:
+          comparison = 0;
+          break;
+      }
+
+      return sortConfig.direction === "asc" ? comparison : -comparison;
+    });
+
+    return result;
+  }, [transactions, searchTerm, typeFilter, sortConfig, recurringFilter]);
 
   const handleSort = (field) => {
     setSortConfig((current) => ({
@@ -94,6 +143,15 @@ const TransactionTable = ({ transactions }) => {
     );
   };
 
+  const handleBulkDelete = () => {};
+
+  const handleClearFilters = () => {
+    setRecurringFilter("");
+    setTypeFilter("");
+    setSearchTerm("");
+    setSelectedIds([]);
+  };
+
   return (
     <div className="space-y-4">
       {/* Filters */}
@@ -107,17 +165,50 @@ const TransactionTable = ({ transactions }) => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div>
-          <Select>
+        <div className="flex gap-2">
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger>
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="light">Light</SelectItem>
-              <SelectItem value="dark">Dark</SelectItem>
-              <SelectItem value="system">System</SelectItem>
+              <SelectItem value="INCOME">Income</SelectItem>
+              <SelectItem value="EXPENSE">Expense</SelectItem>
             </SelectContent>
           </Select>
+
+          <Select value={recurringFilter} onValueChange={setRecurringFilter}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="All Transaction" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recurring">Recurring Only</SelectItem>
+              <SelectItem value="non-recurring">Non-recurring Only</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {selectedIds.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkDelete}
+              >
+                <Trash className="size-4 mr-1" />
+                Delete Selected ({selectedIds.length})
+              </Button>
+            </div>
+          )}
+
+          {(searchTerm || typeFilter || recurringFilter) && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleClearFilters}
+              title="Clear Filters"
+            >
+              <X className="size-4" />
+            </Button>
+          )}
         </div>
       </div>
 
