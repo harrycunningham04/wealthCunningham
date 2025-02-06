@@ -24,7 +24,7 @@ const BudgetProgress = ({ initalBudget, currentExpenses }) => {
 
   const percentUsed =
     currentExpenses > 0 && initalBudget
-      ? (currentExpenses / initalBudget) * 100
+      ? (currentExpenses / initalBudget.amount) * 100
       : 0;
 
   const {
