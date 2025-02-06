@@ -7,24 +7,26 @@ import AccountCard from "./_components/AccountCard";
 import BudgetProgress from "./_components/BudgetProgress";
 import { getCurrentBudget } from "@/actions/budget";
 
-async function DashboardPage () {
+async function DashboardPage() {
+  const accounts = await getUserAccounts();
+  const defaultAccount = accounts?.find((account) => account.isDefault);
 
-const accounts = await getUserAccounts();
-const defaultAccount = accounts?.find((account) => account.isDefault);
+  let budgetData = null;
+  if (defaultAccount) {
+    budgetData = await getCurrentBudget(defaultAccount.id);
+  }
 
-let budgetData = null;
-if(defaultAccount){
-  budgetData = await getCurrentBudget(defaultAccount.id);
-}
+  console.log(budgetData);
 
   return (
-    <div className="px-5">
+    <div className="space-y-8">
       {/* Budget progress */}
-{
-  defaultAccount && (
-    <BudgetProgress initalBudget={budgetData?.budget} currentExpenses={budgetData?.currentExpenses || 0} />
-  )
-}
+      {defaultAccount && (
+        <BudgetProgress
+          initalBudget={budgetData?.budget}
+          currentExpenses={budgetData?.currentExpenses || 0}
+        />
+      )}
 
       {/* Dashboard overview */}
 
@@ -39,13 +41,13 @@ if(defaultAccount){
           </Card>
         </CreateAccountDrawer>
 
-        {accounts.length > 0 && accounts?.map((account) => {
-          return <AccountCard key={account.id} account={account} />;
-        })}
-
+        {accounts.length > 0 &&
+          accounts?.map((account) => {
+            return <AccountCard key={account.id} account={account} />;
+          })}
       </div>
     </div>
   );
-};
+}
 
 export default DashboardPage;

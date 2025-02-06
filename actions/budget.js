@@ -55,9 +55,7 @@ export async function getCurrentBudget(accountId) {
 
     return {
       budget: budget ? { ...budget, amount: budget.amount.toNumber() } : null,
-      currentExpenses: expenses._sum.amount
-        ? expenses._sum.amount.toNumber()
-        : 0,
+      currentExpenses: expenses._sum.amount?.toNumber() || 0,
     };
   } catch (error) {
     console.error(error);
@@ -81,9 +79,15 @@ export async function updateBudget(amount) {
       throw new Error("User not found");
     }
 
-    const budget = await db.budget.upsert({
+    const existingBudget = await db.budget.findFirst({
       where: {
         userId: user.id,
+      },
+    });
+
+    const budget = await db.budget.upsert({
+      where: {
+        id: existingBudget ? existingBudget.id : "", // Use the existing budget ID if found
       },
       update: {
         amount,
@@ -102,8 +106,8 @@ export async function updateBudget(amount) {
   } catch (error) {
     console.error(error);
     return {
-        success: false,
-        error: error.message
-    }
+      success: false,
+      error: error.message,
+    };
   }
 }

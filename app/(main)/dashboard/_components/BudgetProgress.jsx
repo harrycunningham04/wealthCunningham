@@ -14,14 +14,18 @@ import { Check, Pencil, X } from "lucide-react";
 import useFetch from "@/hooks/use-fetch";
 import { updateBudget } from "@/actions/budget";
 import { toast } from "sonner";
+import { Progress } from "@/components/ui/progress";
 
-const BudgetProgress = ({ intialBudget, currentExpenses }) => {
+const BudgetProgress = ({ initalBudget, currentExpenses }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newBudget, setNewBudget] = useState(
-    intialBudget?.amount?.toString() || ""
+    initalBudget?.amount?.toString() || ""
   );
 
-  const percentUsed = intialBudget ? (currentExpenses / intialBudget) * 100 : 0;
+  const percentUsed =
+    currentExpenses > 0 && initalBudget
+      ? (currentExpenses / initalBudget) * 100
+      : 0;
 
   const {
     loading: isLoading,
@@ -33,12 +37,14 @@ const BudgetProgress = ({ intialBudget, currentExpenses }) => {
   const handleUpdateBudget = async () => {
     const amount = parseFloat(newBudget);
 
+    console.log(amount);
+
     if (isNaN(amount) || amount <= 0) {
       toast.error("Please enter a valid amount.");
       return;
     }
 
-    return await updateBudgetFn(amount);
+    await updateBudgetFn(amount);
   };
 
   useEffect(() => {
@@ -55,7 +61,7 @@ const BudgetProgress = ({ intialBudget, currentExpenses }) => {
   }, [error]);
 
   const handleCancel = () => {
-    setNewBudget(intialBudget?.amount?.toString() || "");
+    setNewBudget(initalBudget?.amount?.toString() || "");
     setIsEditing(false);
   };
 
@@ -74,25 +80,32 @@ const BudgetProgress = ({ intialBudget, currentExpenses }) => {
                   className="w-32"
                   placeholder="Enter amount"
                   autoFocus
+                  disabled={isLoading}
                 />
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleUpdateBudget}
+                  disabled={isLoading}
                 >
                   <Check className="size-4 text-green-500" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={handleCancel}>
-                  <X className="size-4 txt-red-500" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleCancel}
+                  disabled={isLoading}
+                >
+                  <X className="size-4 text-red-500" />
                 </Button>
               </div>
             ) : (
               <>
                 <CardDescription>
-                  {intialBudget
+                  {initalBudget
                     ? `£${currentExpenses.toFixed(
                         2
-                      )} of £${intialBudget.amount.toFixed(2)} spant`
+                      )} of £${initalBudget.amount.toFixed(2)} spent`
                     : "No Budget Set"}
                 </CardDescription>
                 <Button
@@ -109,7 +122,23 @@ const BudgetProgress = ({ intialBudget, currentExpenses }) => {
         </div>
       </CardHeader>
       <CardContent>
-        <p>Card Content</p>
+        {initalBudget && (
+          <div className="space-y-2">
+            <Progress
+              value={percentUsed}
+              extraStyles={`${
+                percentUsed >= 90
+                  ? "bg-red-500"
+                  : percentUsed >= 75
+                  ? "bg-yellow-500"
+                  : "bg-green-500"
+              }`}
+            />
+            <p className="text-sm text-muted-foreground text-right">
+              {percentUsed.toFixed(1)}%
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
