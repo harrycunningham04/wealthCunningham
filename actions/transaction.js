@@ -1,3 +1,5 @@
+"use server";
+
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
@@ -63,7 +65,9 @@ export async function createTransaction(data) {
     revalidatePath(`/account/${transaction.accountId}`);
 
     return { success: true, data: serialiseAmount(transaction) };
-  } catch (error) {}
+  } catch (error) {
+    throw new Error(error.message);
+  }
 }
 
 function calculateNextRecurringDate(startDate, interval) {
