@@ -23,8 +23,13 @@ import {
 } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Switch } from "@/components/ui/switch";
+import { useRouter } from "next/navigation";
 
 const AddTransactionForm = ({ accounts, categories }) => {
+  const router = useRouter();
+
   const {
     register,
     setValue,
@@ -59,8 +64,12 @@ const AddTransactionForm = ({ accounts, categories }) => {
     (category) => category.type === type
   );
 
+  const onSubmit = async (data) => {
+    
+  }
+
   return (
-    <form className="space-y-6">
+    <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
       {/*AI Recipt Scanner*/}
 
       {/*Form to enter details*/}
@@ -159,19 +168,99 @@ const AddTransactionForm = ({ accounts, categories }) => {
 
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline"
-            className="w-full pl-3 text-left font-normal">
-                {" "}
-                {date ? format(date, "PPP") : <span>Select a date</span>}
-                <CalendarIcon className="ml-auto size-4 opacity-50 " />
+            <Button
+              variant="outline"
+              className="w-full pl-3 text-left font-normal"
+            >
+              {" "}
+              {date ? format(date, "PPP") : <span>Select a date</span>}
+              <CalendarIcon className="ml-auto size-4 opacity-50 " />
             </Button>
           </PopoverTrigger>
-          <PopoverContent>Place content for the popover here.</PopoverContent>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(date) => setValue("date", date)}
+              disabled={(date) =>
+                date > new Date() || date < new Date("1900-01-01")
+              }
+              initalFocus
+            />
+          </PopoverContent>
         </Popover>
 
         {errors.date && (
           <p className="text-sm text-red-500">{errors.date.message}</p>
         )}
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Description:</label>
+        <Input placeholder="Enter description" {...register("description")} />
+
+        {errors.description && (
+          <p className="text-sm text-red-500">{errors.description.message}</p>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between rounded-lg border p-3">
+        <div className="space-y-0.5">
+          <label
+            htmlFor="isDefault"
+            className="text-sm font-medium cursor-pointer"
+          >
+            Recurring Transaction:
+          </label>
+
+          <p className="text-sm text-muted-foreground">
+            Set up a recurring schedule for this transaction
+          </p>
+        </div>
+        <Switch
+          checked={isRecurring}
+          onCheckedChange={(checked) => setValue("isRecurring", checked)}
+        />
+      </div>
+
+      {isRecurring && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Recurring Interval:</label>
+          <Select
+            onValueChange={(value) => setValue("recurringInterval", value)}
+            defaultValue={getValues("recurringInterval")}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Interval" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="DAILY">Daily</SelectItem>
+              <SelectItem value="WEEKLY">Weekly</SelectItem>
+              <SelectItem value="MONTHLY">Monthly</SelectItem>
+              <SelectItem value="YEARLY">Yearly</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {errors.recurringInterval && (
+            <p className="text-sm text-red-500">
+              {errors.recurringInterval.message}
+            </p>
+          )}
+        </div>
+      )}
+
+      <div className="flex gap-4">
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={() => router.back()}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" className="w-full" disabled={transactionLoading}>
+          Create Transaction
+        </Button>
       </div>
     </form>
   );
