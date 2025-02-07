@@ -4,7 +4,7 @@ import { createTransaction } from "@/actions/transaction";
 import { transactionSchema } from "@/app/lib/schema";
 import useFetch from "@/hooks/use-fetch";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   Select,
@@ -26,6 +26,7 @@ import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const AddTransactionForm = ({ accounts, categories }) => {
   const router = useRouter();
@@ -65,8 +66,21 @@ const AddTransactionForm = ({ accounts, categories }) => {
   );
 
   const onSubmit = async (data) => {
-    
-  }
+    const formData = {
+      ...data,
+      amount: parseFloat(data.amount),
+    };
+
+    transactionFn(formData);
+  };
+
+  useEffect(() => {
+    if (transactionResult?.success && !transactionLoading) {
+      toast.success("Transaction created successfully");
+      reset();
+      router.push(`/account/${transactionResult.data.accountId}`);
+    }
+  }, [transactionResult, transactionLoading]);
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
