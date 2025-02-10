@@ -27,6 +27,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import ReceiptScanner from "./ReceiptScanner";
 
 const AddTransactionForm = ({ accounts, categories }) => {
   const router = useRouter();
@@ -48,6 +49,7 @@ const AddTransactionForm = ({ accounts, categories }) => {
       accountId: accounts.find((ac) => ac.isDefault)?.id,
       date: new Date(),
       isRecurring: false,
+      recurringInterval: "",
     },
   });
 
@@ -82,9 +84,34 @@ const AddTransactionForm = ({ accounts, categories }) => {
     }
   }, [transactionResult, transactionLoading]);
 
+  const handleScanComplete = (scannedData) => {
+    if (scannedData) {
+      setValue("amount", scannedData.amount.toString());
+
+      if (scannedData.date) {
+        console.log("Scanned date:", scannedData.date);
+
+        // Use Date.parse to convert the date string to a timestamp
+        const timestamp = new Date(scannedData.date);
+        console.log(timestamp);
+
+        setValue("date", timestamp);
+      }
+
+      if (scannedData.description) {
+        setValue("description", scannedData.description);
+      }
+
+      if (scannedData.category) {
+        setValue("category", scannedData.category);
+      }
+    }
+  };
+
   return (
     <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
       {/*AI Recipt Scanner*/}
+      <ReceiptScanner onScanComplete={handleScanComplete} />
 
       {/*Form to enter details*/}
       <div className="space-y-2">
@@ -111,7 +138,7 @@ const AddTransactionForm = ({ accounts, categories }) => {
         <div className="space-y-2">
           <label className="text-sm font-medium">Amount:</label>
           <Input
-            type="Number"
+            type="number"
             step="0.01"
             placeholder="£0.00"
             {...register("amount")}
@@ -125,7 +152,7 @@ const AddTransactionForm = ({ accounts, categories }) => {
         <div className="space-y-2">
           <label className="text-sm font-medium">Account:</label>
           <Select
-            onValueChange={(value) => setValue("type", value)}
+            onValueChange={(value) => setValue("accountId", value)}
             defaultValue={getValues("accountId")}
           >
             <SelectTrigger>
@@ -195,7 +222,7 @@ const AddTransactionForm = ({ accounts, categories }) => {
             <Calendar
               mode="single"
               selected={date}
-              onSelect={(date) => setValue("date", date)}
+              onSelect={(date) => date && setValue("date", date)}
               disabled={(date) =>
                 date > new Date() || date < new Date("1900-01-01")
               }
@@ -241,8 +268,11 @@ const AddTransactionForm = ({ accounts, categories }) => {
         <div className="space-y-2">
           <label className="text-sm font-medium">Recurring Interval:</label>
           <Select
-            onValueChange={(value) => setValue("recurringInterval", value)}
+            onValueChange={(value) => {
+              setValue("recurringInterval", value);
+            }}
             defaultValue={getValues("recurringInterval")}
+            value={watch("recurringInterval")}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select Interval" />

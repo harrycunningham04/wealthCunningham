@@ -230,11 +230,10 @@ const TransactionTable = ({ transactions }) => {
             value={recurringFilter}
             onValueChange={(value) => {
               setRecurringFilter(value);
+              console.log("New recurringFilter value:", value); // Log the new value directly
               setCurrentPage(1);
             }}
-          />
-
-          <Select value={recurringFilter} onValueChange={setRecurringFilter}>
+          >
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="All Transaction" />
             </SelectTrigger>
