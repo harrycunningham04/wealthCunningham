@@ -5,6 +5,9 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { request } from "@arcjet/next";
 import aj from "@/lib/arcjet";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const genAi = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const serialiseAmount = (obj) => ({
   ...obj,
@@ -38,10 +41,10 @@ export async function createTransaction(data) {
           },
         });
 
-        throw new Error("Too many requests. Please try again later.")
+        throw new Error("Too many requests. Please try again later.");
       }
 
-      throw new Error("Request Blocked.")
+      throw new Error("Request Blocked.");
     }
 
     const user = await db.user.findUnique({
@@ -118,7 +121,4 @@ function calculateNextRecurringDate(startDate, interval) {
   return date;
 }
 
-
-export async function scanReceipt(file) {
-    
-}
+export async function scanReceipt(file) {}
