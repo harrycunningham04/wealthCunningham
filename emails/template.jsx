@@ -1,13 +1,12 @@
-import React from "react";
 import {
-  Html,
-  Head,
-  Preview,
   Body,
   Container,
+  Head,
   Heading,
-  Text,
+  Html,
+  Preview,
   Section,
+  Text,
 } from "@react-email/components";
 
 export default function EmailTemplate({
@@ -31,39 +30,37 @@ export default function EmailTemplate({
 
             {/* Main Stats */}
             <Section style={styles.statsContainer}>
-              <div style={styles.statRow}>
-                <div style={styles.statBox}>
-                  <Text style={styles.statLabel}>Total Income</Text>
-                  <Text style={styles.statValue}>
-                    ${data?.stats.totalIncome}
-                  </Text>
-                </div>
-                <div style={styles.statBox}>
-                  <Text style={styles.statLabel}>Total Expenses</Text>
-                  <Text style={styles.statValue}>
-                    ${data?.stats.totalExpenses}
-                  </Text>
-                </div>
-                <div style={styles.statBox}>
-                  <Text style={styles.statLabel}>Net</Text>
-                  <Text style={styles.statValue}>
-                    ${data?.stats.totalIncome - data?.stats.totalExpenses}
-                  </Text>
-                </div>
+              <div style={styles.stat}>
+                <Text style={styles.text}>Total Income</Text>
+                <Text style={styles.heading}>
+                  £{data?.stats.totalIncome.toFixed(2)}
+                </Text>
+              </div>
+              <div style={styles.stat}>
+                <Text style={styles.text}>Total Expenses</Text>
+                <Text style={styles.heading}>
+                  £{data?.stats.totalExpenses.toFixed(2)}
+                </Text>
+              </div>
+              <div style={styles.stat}>
+                <Text style={styles.text}>Net</Text>
+                <Text style={styles.heading}>
+                  £
+                  {data?.stats.totalIncome.toFixed(2) -
+                    data?.stats.totalExpenses.toFixed(2)}
+                </Text>
               </div>
             </Section>
 
             {/* Category Breakdown */}
             {data?.stats?.byCategory && (
               <Section style={styles.section}>
-                <Heading style={styles.subheading}>
-                  Expenses by Category
-                </Heading>
+                <Heading style={styles.heading}>Expenses by Category</Heading>
                 {Object.entries(data?.stats.byCategory).map(
                   ([category, amount]) => (
                     <div key={category} style={styles.row}>
-                      <Text style={styles.text}>{category}</Text>
-                      <Text style={styles.text}>${amount}</Text>
+                      <Text style={styles.text}>{category} - </Text>
+                      <Text style={styles.text}>£{amount.toFixed(2)}</Text>
                     </div>
                   )
                 )}
@@ -73,18 +70,40 @@ export default function EmailTemplate({
             {/* AI Insights */}
             {data?.insights && (
               <Section style={styles.section}>
-                <Heading style={styles.subheading}>Welth Insights</Heading>
-                {data.insights.map((insight, index) => (
-                  <Text key={index} style={styles.text}>
-                    • {insight}
-                  </Text>
-                ))}
+                <Heading style={styles.heading}>WealthCunningham Insights</Heading>
+                {(() => {
+                  try {
+                    // Parse the insights if it's a string representation of a JSON array
+                    const insightsArray =
+                      typeof data.insights === "string"
+                        ? JSON.parse(data.insights)
+                        : data.insights;
+
+                    // Ensure insightsArray is an array before mapping
+                    if (Array.isArray(insightsArray)) {
+                      return insightsArray.map((insight, index) => (
+                        <Text key={index} style={styles.text}>
+                          • {insight}
+                        </Text>
+                      ));
+                    } else {
+                      return (
+                        <Text style={styles.text}>No insights available.</Text>
+                      );
+                    }
+                  } catch (error) {
+                    console.error("Error parsing insights:", error);
+                    return (
+                      <Text style={styles.text}>Error loading insights.</Text>
+                    );
+                  }
+                })()}
               </Section>
             )}
 
             <Text style={styles.footer}>
-              Thank you for using WelthCunningham. Keep tracking your finances for better
-              financial information!
+              Thank you for using WelthCunningham. Keep tracking your finances
+              for better financial stability!
             </Text>
           </Container>
         </Body>
@@ -102,25 +121,23 @@ export default function EmailTemplate({
             <Heading style={styles.title}>Budget Alert</Heading>
             <Text style={styles.text}>Hello {userName},</Text>
             <Text style={styles.text}>
-              You have used {data?.percentageUsed.toFixed(1)}% of your monthly
-              budget.
+              You&rsquo;ve used {data?.percentageUsed.toFixed(1)}% of your
+              monthly budget.
             </Text>
             <Section style={styles.statsContainer}>
-              <div style={styles.statRow}>
-                <div style={styles.statBox}>
-                  <Text style={styles.statLabel}>Budget Amount</Text>
-                  <Text style={styles.statValue}>£{data?.budgetAmount}</Text>
-                </div>
-                <div style={styles.statBox}>
-                  <Text style={styles.statLabel}>Spent so far</Text>
-                  <Text style={styles.statValue}>£{data?.totalExpenses}</Text>
-                </div>
-                <div style={styles.statBox}>
-                  <Text style={styles.statLabel}>Remaining</Text>
-                  <Text style={styles.statValue}>
-                    £{data?.budgetAmount - data?.totalExpenses}
-                  </Text>
-                </div>
+              <div style={styles.stat}>
+                <Text style={styles.text}>Budget Amount</Text>
+                <Text style={styles.heading}>£{data?.budgetAmount}</Text>
+              </div>
+              <div style={styles.stat}>
+                <Text style={styles.text}>Spent So Far</Text>
+                <Text style={styles.heading}>£{data?.totalExpenses}</Text>
+              </div>
+              <div style={styles.stat}>
+                <Text style={styles.text}>Remaining</Text>
+                <Text style={styles.heading}>
+                  £{data?.budgetAmount - data?.totalExpenses}
+                </Text>
               </div>
             </Section>
           </Container>
@@ -132,8 +149,9 @@ export default function EmailTemplate({
 
 const styles = {
   body: {
-    backgroundColor: "#f6f9fc",
-    fontFamily: "-apple-system, sans-serif",
+    backgroundColor: "#f4f7fc",
+    fontFamily: "Arial, sans-serif",
+    color: "#333",
     padding: "20px",
   },
   container: {
@@ -142,57 +160,75 @@ const styles = {
     padding: "24px",
     borderRadius: "8px",
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-    maxWidth: "500px",
-    textAlign: "center",
+    maxWidth: "600px",
   },
   title: {
-    color: "#1f2937",
+    color: "#2c3e50",
     fontSize: "28px",
     fontWeight: "bold",
-    marginBottom: "16px",
+    textAlign: "center",
+    marginBottom: "20px",
   },
   subheading: {
-    color: "#1f2937",
+    color: "#34495e",
     fontSize: "20px",
-    fontWeight: "bold",
+    fontWeight: "600",
     marginBottom: "12px",
   },
   text: {
-    color: "#4b5563",
+    color: "#4a4a4a",
     fontSize: "16px",
+    lineHeight: "1.5",
     marginBottom: "12px",
   },
   statsContainer: {
-    margin: "24px 0",
-    padding: "20px",
-    backgroundColor: "#f9fafb",
-    borderRadius: "6px",
-  },
-  statRow: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
     gap: "12px",
+    padding: "20px",
+    backgroundColor: "#ecf0f1",
+    borderRadius: "8px",
+    textAlign: "center",
   },
-  statBox: {
-    backgroundColor: "#fff",
-    padding: "14px",
+  statBlock: {
+    padding: "12px",
+    backgroundColor: "#ffffff",
     borderRadius: "6px",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
-    width: "80%",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
   },
   statLabel: {
-    color: "#6b7280",
     fontSize: "14px",
+    color: "#7f8c8d",
+    marginBottom: "4px",
   },
   statValue: {
-    color: "#1f2937",
     fontSize: "18px",
-    fontWeight: "600",
+    fontWeight: "bold",
+    color: "#2c3e50",
+  },
+  section: {
+    padding: "20px",
+    backgroundColor: "#f9f9f9",
+    borderRadius: "8px",
+    marginTop: "20px",
+  },
+  row: {
+    display: "flex",
+    justifyContent: "space-between",
+    padding: "10px 0",
+    borderBottom: "1px solid #ddd",
+  },
+  listItem: {
+    fontSize: "16px",
+    color: "#4a4a4a",
+    marginBottom: "8px",
   },
   footer: {
-    color: "#6b7280",
+    color: "#7f8c8d",
     fontSize: "14px",
+    textAlign: "center",
     marginTop: "20px",
+    paddingTop: "16px",
+    borderTop: "1px solid #ddd",
   },
 };
