@@ -6,7 +6,7 @@ import { getDashboardData, getUserAccounts } from "@/actions/dashboard";
 import AccountCard from "./_components/AccountCard";
 import BudgetProgress from "./_components/BudgetProgress";
 import { getCurrentBudget } from "@/actions/budget";
-import { DashboardOverview } from "./_components/DashboardOverview";
+import DashboardOverview from "./_components/DashboardOverview";
 
 async function DashboardPage() {
   const accounts = await getUserAccounts();
