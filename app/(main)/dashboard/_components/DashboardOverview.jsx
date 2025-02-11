@@ -18,7 +18,17 @@ import {
 import { format } from "date-fns";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PieChart, Pie, Cell } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
+
+const colors = [
+    "#FFC107",
+    "#8BC34A",
+    "#03A9F4",
+    "#FF9800",
+    "#4CAF50",
+    "#9C27B0",
+    "#3F51B5",
+]
 
 const DashboardOverview = ({ accounts, transactions }) => {
   const [selectedAccountId, setSelectedAccountId] = useState(
@@ -52,7 +62,12 @@ const DashboardOverview = ({ accounts, transactions }) => {
     return acc;
   }, {});
 
-  
+  const pieChartData = Object.entries(expensesByCategory).map(
+    ([category, amount]) => ({
+      name: category,
+      value: amount,
+    })
+  );
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -126,17 +141,35 @@ const DashboardOverview = ({ accounts, transactions }) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Card Title</CardTitle>
-          <CardDescription>Card Description</CardDescription>
+          <CardTitle>Monthly Expenses Breakdown</CardTitle>
         </CardHeader>
-        <CardContent>
-          <PieChart width={730} height={250}>
-            <Pie data={data} cx="50%" cy="50%" outerRadius={80} label>
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={colors[index]} />
-              ))}
-            </Pie>
-          </PieChart>
+        <CardContent className="p-0 pb-5">
+          {pieChartData.length === 0 ? (
+            <p className="text-center text-muted-foreground py-4">
+              No Expenses this month
+            </p>
+          ) : (
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieChartData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: £${value.toFixed(2)}`}
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                    ))}
+                  </Pie>
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
