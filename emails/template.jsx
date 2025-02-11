@@ -1,22 +1,95 @@
+import React from "react";
 import {
   Html,
-  Preview,
   Head,
+  Preview,
   Body,
   Container,
   Heading,
-  Section,
   Text,
+  Section,
 } from "@react-email/components";
-import * as React from "react";
 
 export default function EmailTemplate({
-  userName = "Harry",
-  type = "budget-alert",
+  userName = "",
+  type = "monthly-report",
   data = {},
 }) {
   if (type === "monthly-report") {
-    // Future implementation
+    return (
+      <Html>
+        <Head />
+        <Preview>Your Monthly Financial Report</Preview>
+        <Body style={styles.body}>
+          <Container style={styles.container}>
+            <Heading style={styles.title}>Monthly Financial Report</Heading>
+
+            <Text style={styles.text}>Hello {userName},</Text>
+            <Text style={styles.text}>
+              Here&rsquo;s your financial summary for {data?.month}:
+            </Text>
+
+            {/* Main Stats */}
+            <Section style={styles.statsContainer}>
+              <div style={styles.statRow}>
+                <div style={styles.statBox}>
+                  <Text style={styles.statLabel}>Total Income</Text>
+                  <Text style={styles.statValue}>
+                    ${data?.stats.totalIncome}
+                  </Text>
+                </div>
+                <div style={styles.statBox}>
+                  <Text style={styles.statLabel}>Total Expenses</Text>
+                  <Text style={styles.statValue}>
+                    ${data?.stats.totalExpenses}
+                  </Text>
+                </div>
+                <div style={styles.statBox}>
+                  <Text style={styles.statLabel}>Net</Text>
+                  <Text style={styles.statValue}>
+                    ${data?.stats.totalIncome - data?.stats.totalExpenses}
+                  </Text>
+                </div>
+              </div>
+            </Section>
+
+            {/* Category Breakdown */}
+            {data?.stats?.byCategory && (
+              <Section style={styles.section}>
+                <Heading style={styles.subheading}>
+                  Expenses by Category
+                </Heading>
+                {Object.entries(data?.stats.byCategory).map(
+                  ([category, amount]) => (
+                    <div key={category} style={styles.row}>
+                      <Text style={styles.text}>{category}</Text>
+                      <Text style={styles.text}>${amount}</Text>
+                    </div>
+                  )
+                )}
+              </Section>
+            )}
+
+            {/* AI Insights */}
+            {data?.insights && (
+              <Section style={styles.section}>
+                <Heading style={styles.subheading}>Welth Insights</Heading>
+                {data.insights.map((insight, index) => (
+                  <Text key={index} style={styles.text}>
+                    • {insight}
+                  </Text>
+                ))}
+              </Section>
+            )}
+
+            <Text style={styles.footer}>
+              Thank you for using WelthCunningham. Keep tracking your finances for better
+              financial information!
+            </Text>
+          </Container>
+        </Body>
+      </Html>
+    );
   }
 
   if (type === "budget-alert") {
@@ -61,6 +134,7 @@ const styles = {
   body: {
     backgroundColor: "#f6f9fc",
     fontFamily: "-apple-system, sans-serif",
+    padding: "20px",
   },
   container: {
     backgroundColor: "#ffffff",
@@ -77,10 +151,16 @@ const styles = {
     fontWeight: "bold",
     marginBottom: "16px",
   },
+  subheading: {
+    color: "#1f2937",
+    fontSize: "20px",
+    fontWeight: "bold",
+    marginBottom: "12px",
+  },
   text: {
     color: "#4b5563",
     fontSize: "16px",
-    marginBottom: "16px",
+    marginBottom: "12px",
   },
   statsContainer: {
     margin: "24px 0",
@@ -109,5 +189,10 @@ const styles = {
     color: "#1f2937",
     fontSize: "18px",
     fontWeight: "600",
+  },
+  footer: {
+    color: "#6b7280",
+    fontSize: "14px",
+    marginTop: "20px",
   },
 };
