@@ -7,12 +7,11 @@ import {
   Heading,
   Section,
   Text,
-  Img,
 } from "@react-email/components";
 import * as React from "react";
 
 export default function EmailTemplate({
-  userName = "",
+  userName = "Harry",
   type = "budget-alert",
   data = {},
 }) {
