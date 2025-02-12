@@ -8,7 +8,7 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 const aj = arcjet({
-  key: process.env.ARCJECT_KEY,
+  key: process.env.ARCJET_KEY,
   rules: [
     shield({
       mode: "LIVE",
