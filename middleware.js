@@ -29,7 +29,7 @@ const clerk = clerkMiddleware(async (auth, req) => {
     return redirectToSignIn();
   }
 });
-export default createMiddleware (aj, clerk);
+export default createMiddleware(aj, clerk);
 
 export const config = {
   matcher: [
