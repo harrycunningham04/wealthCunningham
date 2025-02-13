@@ -38,7 +38,7 @@ const Hero = () => {
           analyse and optimise your spending with real time insights.
         </p>
         <div className="flex justify-center space-x-4">
-          <Link href="/dashboard">
+          <Link href="/sign-up">
             <Button className="px-8" size="lg">
               Get Started
             </Button>
