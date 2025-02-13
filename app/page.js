@@ -77,7 +77,7 @@ export default function Home() {
             Join users who are already controlling their finances smarter with
             WealthCunningham
           </p>
-          <Link href="/dashboard">
+          <Link href="/sign-up">
             <Button
               size="lg"
               className="bg-white text-blue-600 hover:bg-blue-50 animate-bounce"

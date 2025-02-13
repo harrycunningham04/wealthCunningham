@@ -1,10 +1,16 @@
-import { SignUp } from '@clerk/nextjs'
-import React from 'react'
+import { SignUp } from "@clerk/nextjs";
+import React from "react";
+import { useRouter } from "next/router";
 
 const page = () => {
-  return (
-    <SignUp />
-  )
-}
+  const router = useRouter();
 
-export default page
+  const handleSignUpSuccess = () => {
+    // Redirect to dashboard
+    router.push("/dashboard");
+  };
+
+  return <SignUp onSuccess={handleSignUpSuccess} />;
+};
+
+export default page;
